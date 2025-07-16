@@ -1,7 +1,8 @@
 {
+  "scriptFile": "__init__.py",
   "bindings": [
     {
-      "name": "blob",
+      "name": "myblob",
       "type": "blobTrigger",
       "direction": "in",
       "path": "invoices/pending/{name}",
