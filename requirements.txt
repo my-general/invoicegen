@@ -1,21 +1,21 @@
-# Required for Azure Function Apps
+# Azure Function runtime
 azure-functions
 
-# Form Recognizer SDK (compatible with Python 3.11 and Azure)
+# Azure AI Form Recognizer (stable v3, works with DocumentAnalysisClient)
 azure-ai-formrecognizer==3.3.3
 
-# For accessing blob storage
-azure-storage-blob==12.25.1
-
-# Form Recognizer and Azure SDK dependencies
+# Core Azure SDK packages (must match SDK versions)
 azure-core==1.35.0
 azure-common==1.1.28
 
-# HTTP requests (used by Form Recognizer SDK)
+# Azure Blob Storage client
+azure-storage-blob==12.25.1
+
+# HTTP library (required by SDKs)
 requests==2.32.4
 
-# For handling .env files (if used)
+# Load environment variables (optional, useful for local dev)
 python-dotenv==1.1.1
 
-# Optional: PDF file generation if needed in other parts of the app
+# PDF generation library (optional but required if generating PDFs in functions)
 fpdf==1.7.2
