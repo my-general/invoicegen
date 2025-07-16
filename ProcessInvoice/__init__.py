@@ -1,36 +1,31 @@
-import logging
-import os
 import azure.functions as func
-from azure.ai.formrecognizer import DocumentAnalysisClient
-from azure.core.credentials import AzureKeyCredential
+import logging
+from form_config import client  # assumes this file is in root directory
 
-endpoint = os.environ["FORM_RECOGNIZER_ENDPOINT"]
-key = os.environ["FORM_RECOGNIZER_KEY"]
-
-document_analysis_client = DocumentAnalysisClient(
-    endpoint=endpoint, credential=AzureKeyCredential(key)
-)
-
-def main(blob: func.InputStream):
-    logging.info(f"Blob trigger function processed blob \n"
-                 f"Name: {blob.name} \n"
-                 f"Blob Size: {blob.length} bytes")
+def main(myblob: func.InputStream):
+    logging.info("✅ Blob trigger activated")
+    logging.info(f"📄 File: {myblob.name}, Size: {myblob.length} bytes")
 
     try:
-        poller = document_analysis_client.begin_analyze_document(
+        poller = client.begin_analyze_document(
             model_id="prebuilt-invoice",
-            document=blob.read()
+            document=myblob.read(),  # read() because it's a stream
+            content_type="application/pdf"
         )
         result = poller.result()
 
-        for doc in result.documents:
-            vendor = doc.fields.get("VendorName")
-            total = doc.fields.get("InvoiceTotal")
-            invoice_id = doc.fields.get("InvoiceId")
+        logging.info("📥 Invoice details extracted:")
+        for idx, doc in enumerate(result.documents):
+            fields = doc.fields
+            vendor_name = fields.get("VendorName").value if fields.get("VendorName") else None
+            invoice_id = fields.get("InvoiceId").value if fields.get("InvoiceId") else None
+            invoice_date = fields.get("InvoiceDate").value if fields.get("InvoiceDate") else None
+            total_amount = fields.get("InvoiceTotal").value if fields.get("InvoiceTotal") else None
 
-            logging.info(f"✅ Vendor: {vendor.value if vendor else 'N/A'}")
-            logging.info(f"💰 Total Amount: {total.value if total else 'N/A'}")
-            logging.info(f"🧾 Invoice ID: {invoice_id.value if invoice_id else 'N/A'}")
-
+            logging.info(f"🧾 Invoice #{idx+1}:")
+            logging.info(f"   Vendor: {vendor_name}")
+            logging.info(f"   Invoice ID: {invoice_id}")
+            logging.info(f"   Date: {invoice_date}")
+            logging.info(f"   Total: {total_amount}")
     except Exception as e:
-        logging.error(f"❌ Failed to process invoice: {e}")
+        logging.error(f"❌ Error during invoice analysis: {e}")
